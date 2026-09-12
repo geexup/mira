@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/sonner"
 import { useDocumentTitle } from "@/lib/hooks"
 import { api } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
+import { splitRepoKey } from "@/lib/repo-key"
 
 function parseDetail(e: unknown): string {
   const raw = e instanceof Error ? e.message : String(e)
@@ -101,7 +102,7 @@ export function LearningFormPage() {
       setError("Pick a repo and enter the rule text.")
       return
     }
-    const [owner, repo] = repoKey.split("/")
+    const [owner, repo] = splitRepoKey(repoKey)
     const body = {
       rule_text: ruleText.trim(),
       category: category.trim() || "other",

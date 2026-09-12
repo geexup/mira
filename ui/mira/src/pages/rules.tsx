@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/sonner"
 import { api, type RepoListItem, type RuleModel } from "@/lib/api"
 import { useAsync, useDocumentTitle } from "@/lib/hooks"
+import { splitRepoKey } from "@/lib/repo-key"
 
 // ── Types ──
 
@@ -93,13 +94,13 @@ export function RulesPage() {
       setRepoRules([])
       return
     }
-    const [owner, repo] = selectedRepo.split("/")
+    const [owner, repo] = splitRepoKey(selectedRepo)
     api.listRepoRules(owner, repo).then(setRepoRules).catch(() => {})
   }, [selectedRepo])
 
   const saveRepo = async () => {
     if (!editingRepo || !editingRepo.title.trim() || !selectedRepo) return
-    const [owner, repo] = selectedRepo.split("/")
+    const [owner, repo] = splitRepoKey(selectedRepo)
     try {
       if (editingRepo.id) {
         const updated = await api.updateRepoRule(
@@ -131,7 +132,7 @@ export function RulesPage() {
 
   const deleteRepo = async (id: number) => {
     if (!selectedRepo) return
-    const [owner, repo] = selectedRepo.split("/")
+    const [owner, repo] = splitRepoKey(selectedRepo)
     await api.deleteRepoRule(owner, repo, id)
     setRepoRules((prev) => prev.filter((r) => r.id !== id))
   }
