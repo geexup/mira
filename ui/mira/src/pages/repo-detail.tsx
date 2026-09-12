@@ -47,21 +47,39 @@ function formatRelativeTime(iso: string | null): string {
 
 export function RepoDetailPage() {
   const params = useParams<{ "*": string }>()
-  const [owner, repo] = splitRepoKey(params["*"] ?? "")
-  useDocumentTitle(owner && repo ? `${owner}/${repo}` : "Repository")
+  const repoKey = splitRepoKey(params["*"] ?? "")
+  useDocumentTitle(repoKey ? `${repoKey[0]}/${repoKey[1]}` : "Repository")
 
+  if (!repoKey) {
+    return (
+      <div className="p-6 text-sm text-destructive">
+        Invalid repository path.
+      </div>
+    )
+  }
+
+  return <RepoDetailPageContent owner={repoKey[0]} repo={repoKey[1]} />
+}
+
+function RepoDetailPageContent({
+  owner,
+  repo,
+}: {
+  owner: string
+  repo: string
+}) {
   const { data, loading, error } = useAsync(
-    () => api.getRepo(owner!, repo!),
+    () => api.getRepo(owner, repo),
     [owner, repo],
   )
   const { data: packages } = useAsync(
-    () => api.getPackages(owner!, repo!),
+    () => api.getPackages(owner, repo),
     [owner, repo],
   )
   const { data: vulns } = useAsync(
     () =>
       api
-        .getRepoVulnerabilities(owner!, repo!)
+        .getRepoVulnerabilities(owner, repo)
         .catch(() => [] as never),
     [owner, repo],
   )
@@ -495,7 +513,7 @@ export function RepoDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <BlastRadiusList owner={owner!} repo={repo!} />
+              <BlastRadiusList owner={owner} repo={repo} />
             </CardContent>
           </Card>
         </TabsContent>

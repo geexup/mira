@@ -105,7 +105,12 @@ export function LearningFormPage() {
       setError("Pick a repo and enter the rule text.")
       return
     }
-    const [owner, repo] = splitRepoKey(repoKey)
+    const repoParts = splitRepoKey(repoKey)
+    if (!repoParts) {
+      setError("Invalid repository key.")
+      return
+    }
+    const [owner, repo] = repoParts
     const body = {
       rule_text: ruleText.trim(),
       category: category.trim() || "other",
