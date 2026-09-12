@@ -1,4 +1,4 @@
-"""Rules endpoints support GitLab repositories in nested groups."""
+"""Dashboard endpoints support GitLab repositories in nested groups."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from starlette.routing import Match
 
 from mira.dashboard import api
 from mira.dashboard.db import AppDatabase
-from mira.dashboard.routers import rules
+from mira.dashboard.routers import repos, rules
 
 
 @pytest.fixture
@@ -29,6 +29,51 @@ def nested_repo_db(
 @pytest.mark.parametrize(
     ("method", "path", "endpoint_name"),
     [
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs",
+            "get_repo_detail",
+        ),
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/files",
+            "list_files",
+        ),
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/dependencies",
+            "get_dependencies",
+        ),
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/blast-radius",
+            "get_blast_radius",
+        ),
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/packages",
+            "get_packages",
+        ),
+        (
+            "POST",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/index",
+            "trigger_index",
+        ),
+        (
+            "DELETE",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/index",
+            "cancel_index",
+        ),
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/reviews",
+            "list_reviews",
+        ),
+        (
+            "GET",
+            "/api/repos/clients/mymedhub/mymedhub-api-nestjs/vulnerabilities",
+            "get_repo_vulnerabilities",
+        ),
         (
             "POST",
             "/api/repos/clients/mymedhub/mymedhub-api-nestjs/rules",
@@ -105,3 +150,19 @@ def test_repo_rule_crud_with_nested_owner(nested_repo_db: AppDatabase):
 
     assert rules.delete_repo_rule(owner, repo, created.id) == {"ok": True}
     assert rules.list_repo_rules(owner, repo) == []
+
+
+def test_repo_detail_opens_nested_owner(nested_repo_db: AppDatabase):
+    nested_repo_db.set_repo_status(
+        "clients/mymedhub",
+        "mymedhub-api-nestjs",
+        "ready",
+        bump_last_indexed=True,
+        platform="gitlab",
+    )
+    detail = repos.get_repo_detail("clients/mymedhub", "mymedhub-api-nestjs")
+
+    assert detail.owner == "clients/mymedhub"
+    assert detail.repo == "mymedhub-api-nestjs"
+    assert detail.file_count == 0
+    assert detail.last_indexed is not None

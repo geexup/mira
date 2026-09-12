@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { DependenciesTable } from "@/components/dashboard/dependencies-table"
 import { api, type ReviewContextModel } from "@/lib/api"
 import { useAsync, useDocumentTitle } from "@/lib/hooks"
+import { splitRepoKey } from "@/lib/repo-key"
 
 function formatRelativeTime(iso: string | null): string {
   if (!iso) return "Never indexed"
@@ -45,7 +46,8 @@ function formatRelativeTime(iso: string | null): string {
 }
 
 export function RepoDetailPage() {
-  const { owner, repo } = useParams<{ owner: string; repo: string }>()
+  const params = useParams<{ "*": string }>()
+  const [owner, repo] = splitRepoKey(params["*"] ?? "")
   useDocumentTitle(owner && repo ? `${owner}/${repo}` : "Repository")
 
   const { data, loading, error } = useAsync(
@@ -531,11 +533,10 @@ function BlastRadiusList({ owner, repo }: { owner: string; repo: string }) {
         <div className="space-y-3">
           <h3 className="text-sm font-medium">Cross-Repo References</h3>
           {data!.cross_repo.map((entry) => {
-            const [rOwner, rRepo] = entry.repo.split("/")
             return (
               <div key={entry.repo} className="rounded-lg border p-3">
                 <Link
-                  to={`/repos/${rOwner}/${rRepo}`}
+                  to={`/repos/${entry.repo}`}
                   className="text-sm font-medium hover:underline"
                 >
                   {entry.repo}
